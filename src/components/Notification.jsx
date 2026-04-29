@@ -2,11 +2,7 @@ import React from 'react';
 import './Notification.css';
 
 /**
- * Banner shown after the bowl is clicked.
- *
- * Props:
- *   - found: boolean
- *   - meal: string | null  ("Lunch" or "Dinner")
+banner
  */
 export default function Notification({ found, meal }) {
   if (found) {

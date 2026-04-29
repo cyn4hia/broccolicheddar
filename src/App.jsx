@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import Header from './components/Header.jsx';
 import SoupBowl from './components/SoupBowl.jsx';
 import Notification from './components/Notification.jsx';
-import { fetchTodaysMenu, findBroccoliCheddar } from './utils/menu.js';
+import { fetchTodayResult } from './utils/menu.js';
 import './App.css';
 
 export default function App() {
   // status: 'loading' | 'ready' | 'error'
   const [status, setStatus] = useState('loading');
-  const [result, setResult] = useState(null); // { found, meal }
+  const [result, setResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [revealed, setRevealed] = useState(false);
 
@@ -16,9 +16,9 @@ export default function App() {
     let cancelled = false;
     (async () => {
       try {
-        const menu = await fetchTodaysMenu();
+        const data = await fetchTodayResult();
         if (cancelled) return;
-        setResult(findBroccoliCheddar(menu));
+        setResult(data);
         setStatus('ready');
       } catch (err) {
         if (cancelled) return;
@@ -53,12 +53,17 @@ export default function App() {
           )}
           {status === 'error' && (
             <p className="hint hint-error">
-              couldn't reach the menu :( <br />
+              couldn't load today's menu :(
+              <br />
               <small>{errorMsg}</small>
             </p>
           )}
           {status === 'ready' && !revealed && (
-            <p className="hint">tap the bowl</p>
+            <p className="hint">
+              {result?.isStale
+                ? "today's menu hasn't dropped yet — tap anyway"
+                : 'tap the bowl'}
+            </p>
           )}
           {status === 'ready' && revealed && (
             <Notification found={result.found} meal={result.meal} />
@@ -67,7 +72,7 @@ export default function App() {
       </div>
 
       <footer className="footer">
-        <p>not affiliated with northeastern dining · made with love & soup</p>
+        <p>im the #1 steast broccoli cheddar soup stan, github: @cyn4hia</p>
       </footer>
     </main>
   );

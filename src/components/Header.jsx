@@ -12,8 +12,6 @@ export default function Header() {
       </h1>
       <div className="meta">
         <span className="meta-date">{getDisplayDate()}</span>
-        <span className="meta-dot">·</span>
-        <span className="meta-loc">Stetson East · Levine Marketplace</span>
       </div>
     </header>
   );
