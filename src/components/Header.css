@@ -1,0 +1,39 @@
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.title {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: clamp(1.8rem, 4.5vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #2a1f17;
+  margin: 0 0 1rem 0;
+}
+
+.title em {
+  font-style: italic;
+  font-weight: 700;
+  color: #c47820;
+}
+
+.meta {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: #6b5b4f;
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.meta-dot {
+  opacity: 0.4;
+}
+
+.meta-loc {
+  font-style: italic;
+}

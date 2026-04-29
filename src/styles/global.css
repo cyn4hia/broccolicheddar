@@ -1,0 +1,31 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background:
+    radial-gradient(ellipse at top left, #fff5e1 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, #fde6d4 0%, transparent 50%),
+    #fdf8ee;
+  color: #2a1f17;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button {
+  font-family: inherit;
+}
