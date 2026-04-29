@@ -2,13 +2,19 @@ import React, { useEffect, useState } from 'react';
 import Header from './components/Header.jsx';
 import SoupBowl from './components/SoupBowl.jsx';
 import Notification from './components/Notification.jsx';
-import { fetchTodayResult } from './utils/menu.js';
+import Counter from './components/Counter.jsx';
+import {
+  fetchTodayResult,
+  fetchHistory,
+  daysSinceBroccoliCheddar,
+} from './utils/menu.js';
 import './App.css';
 
 export default function App() {
   // status: 'loading' | 'ready' | 'error'
   const [status, setStatus] = useState('loading');
   const [result, setResult] = useState(null);
+  const [history, setHistory] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [revealed, setRevealed] = useState(false);
 
@@ -16,9 +22,13 @@ export default function App() {
     let cancelled = false;
     (async () => {
       try {
-        const data = await fetchTodayResult();
+        const [todayData, historyData] = await Promise.all([
+          fetchTodayResult(),
+          fetchHistory(),
+        ]);
         if (cancelled) return;
-        setResult(data);
+        setResult(todayData);
+        setHistory(historyData);
         setStatus('ready');
       } catch (err) {
         if (cancelled) return;
@@ -35,6 +45,8 @@ export default function App() {
     if (status !== 'ready') return;
     setRevealed(true);
   };
+
+  const days = daysSinceBroccoliCheddar(result, history);
 
   return (
     <main className="app">
@@ -66,13 +78,20 @@ export default function App() {
             </p>
           )}
           {status === 'ready' && revealed && (
-            <Notification found={result.found} meal={result.meal} />
+            <>
+              <Notification found={result.found} meal={result.meal} />
+              <Counter days={days} />
+            </>
           )}
         </div>
+
+        {result?.isTest && (
+          <p className="test-banner">test mode</p>
+        )}
       </div>
 
       <footer className="footer">
-        <p>im the #1 steast broccoli cheddar soup stan, github: @cyn4hia</p>
+        <p>github @cyn4hia</p>
       </footer>
     </main>
   );

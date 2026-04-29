@@ -6,9 +6,9 @@ export default function Header() {
   return (
     <header className="header">
       <h1 className="title">
-        is there <em>broccoli cheddar soup</em>
+        Is there <em>broccoli cheddar soup</em>
         <br />
-        at steast today?
+        at Steast today?
       </h1>
       <div className="meta">
         <span className="meta-date">{getDisplayDate()}</span>

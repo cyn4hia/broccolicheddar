@@ -1,27 +1,11 @@
-// Fetches today's Stetson East menu from DineOnCampus and writes
-// public/data/today.json with the result.
-//
-// Run by GitHub Actions on a cron. Also runnable locally:
-//   node scripts/fetch-menu.js
-//
-// No dependencies — uses Node 18+ built-in fetch.
-
-import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const OUT_PATH = join(__dirname, '..', 'public', 'data', 'today.json');
+const DATA_DIR = join(__dirname, '..', 'public', 'data');
+const TODAY_PATH = join(DATA_DIR, 'today.json');
+const HISTORY_PATH = join(DATA_DIR, 'history.json');
 
-// =====================================================================
-// CONFIG — fill these in once.
-// To find the location ID:
-//   1. Open https://nudining.com in Chrome
-//   2. DevTools → Network tab
-//   3. Click on "The Eatery at Stetson East"
-//   4. Look for any request to api.dineoncampus.com/v1/location/<ID>/...
-//      Copy that <ID> here.
-// =====================================================================
 const STEAST_LOCATION_ID = 'PASTE_STETSON_EAST_LOCATION_ID_HERE';
 
 const TARGET_KEYWORDS = [
@@ -32,7 +16,6 @@ const TARGET_KEYWORDS = [
 
 const RELEVANT_MEALS = ['lunch', 'dinner'];
 
-// Pretend to be a normal browser so Cloudflare is friendlier.
 const HEADERS = {
   'User-Agent':
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
@@ -65,7 +48,6 @@ async function getPeriodMenu(locationId, periodId, date) {
 }
 
 function periodHasBroccoliCheddar(menuJson) {
-  // Shape: { menu: { periods: { categories: [{ items: [{ name, ... }] }] } } }
   const categories = menuJson?.menu?.periods?.categories ?? [];
   for (const cat of categories) {
     for (const item of cat.items ?? []) {
@@ -78,31 +60,60 @@ function periodHasBroccoliCheddar(menuJson) {
   return false;
 }
 
+function loadHistory() {
+  if (!existsSync(HISTORY_PATH)) {
+    return { last_soup_date: null, soup_days: [] };
+  }
+  try {
+    return JSON.parse(readFileSync(HISTORY_PATH, 'utf8'));
+  } catch {
+    return { last_soup_date: null, soup_days: [] };
+  }
+}
+
+function updateHistory(history, date, found) {
+  if (!found) return history;
+  // Only record once per day, even if the action runs twice.
+  if (history.last_soup_date === date) return history;
+  // Only move last_soup_date forward (don't overwrite if a backfill runs).
+  if (!history.last_soup_date || date > history.last_soup_date) {
+    history.last_soup_date = date;
+  }
+  if (!history.soup_days.includes(date)) {
+    history.soup_days.push(date);
+    history.soup_days.sort();
+  }
+  return history;
+}
+
 async function main() {
   if (STEAST_LOCATION_ID.startsWith('PASTE_')) {
-    throw new Error(
-      'Set STEAST_LOCATION_ID at the top of scripts/fetch-menu.js'
-    );
+    throw new Error('Set STEAST_LOCATION_ID at the top of scripts/fetch-menu.js');
   }
 
   const date = getBostonDateString();
   console.log(`Checking ${date} for broccoli cheddar at Steast...`);
 
-  let result = { date, found: false, meal: null, error: null };
+  const result = {
+    date,
+    found: false,
+    meal: null,
+    error: null,
+    generated_at: new Date().toISOString(),
+  };
 
   try {
     const periods = await getPeriods(STEAST_LOCATION_ID, date);
 
     for (const period of periods) {
       const periodName = (period.name ?? '').toLowerCase();
-      const isRelevant = RELEVANT_MEALS.some((m) => periodName.includes(m));
-      if (!isRelevant) continue;
+      if (!RELEVANT_MEALS.some((m) => periodName.includes(m))) continue;
 
       const menuJson = await getPeriodMenu(STEAST_LOCATION_ID, period.id, date);
       if (periodHasBroccoliCheddar(menuJson)) {
         result.found = true;
         result.meal = period.name;
-        break; // first match wins (lunch comes before dinner)
+        break;
       }
     }
   } catch (err) {
@@ -110,15 +121,14 @@ async function main() {
     result.error = err.message;
   }
 
-  // Always write SOMETHING so the frontend never sees a stale file.
-  // generated_at lets the UI tell the user how fresh the data is.
-  result.generated_at = new Date().toISOString();
+  mkdirSync(DATA_DIR, { recursive: true });
+  writeFileSync(TODAY_PATH, JSON.stringify(result, null, 2) + '\n');
 
-  mkdirSync(dirname(OUT_PATH), { recursive: true });
-  writeFileSync(OUT_PATH, JSON.stringify(result, null, 2) + '\n');
+  const history = updateHistory(loadHistory(), date, result.found);
+  writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2) + '\n');
 
-  console.log('Wrote', OUT_PATH);
-  console.log(result);
+  console.log('today:', result);
+  console.log('history:', history);
 }
 
 main().catch((err) => {

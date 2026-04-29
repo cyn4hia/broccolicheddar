@@ -5,3 +5,4 @@
 // so this works whether you deploy to username.github.io/ or
 // username.github.io/your-repo-name/.
 export const TODAY_JSON_URL = `${import.meta.env.BASE_URL}data/today.json`;
+export const HISTORY_JSON_URL = `${import.meta.env.BASE_URL}data/history.json`;

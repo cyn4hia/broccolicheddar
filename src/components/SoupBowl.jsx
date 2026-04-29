@@ -1,15 +1,6 @@
 import React from 'react';
 import './SoupBowl.css';
 
-/**
- * Interactive bowl. Renders empty by default; when `filled` is true,
- * soup + broccoli + steam appear inside the bowl.
- *
- * Props:
- *   - filled: boolean — show soup or not
- *   - onClick: () => void — click handler
- *   - disabled: boolean — disable interaction (e.g. while loading)
- */
 export default function SoupBowl({ filled, onClick, disabled }) {
   return (
     <button
@@ -24,21 +15,25 @@ export default function SoupBowl({ filled, onClick, disabled }) {
     >
       <svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <clipPath id="bowl-interior">
-            <path d="M 50 110 Q 50 200 160 200 Q 270 200 270 110 Z" />
+          {/* Clip path */}
+          <clipPath id="soup-surface-clip">
+            <ellipse cx="160" cy="110" rx="112" ry="18" />
           </clipPath>
 
-          <linearGradient id="soup-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#f4b942" />
-            <stop offset="60%" stopColor="#e89829" />
+          {/* Soup color */}
+          <radialGradient id="soup-gradient" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" stopColor="#f9c84d" />
+            <stop offset="70%" stopColor="#e89829" />
             <stop offset="100%" stopColor="#c47820" />
-          </linearGradient>
+          </radialGradient>
 
-          <linearGradient id="rim-shadow" x1="0%" y1="0%" x2="0%" y2="100%">
+          {/* Bowl rim */}
+          <linearGradient id="rim-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#a01818" />
             <stop offset="100%" stopColor="#7a1212" />
           </linearGradient>
 
+          {/* Red bowl body */}
           <linearGradient id="bowl-body" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#d62828" />
             <stop offset="100%" stopColor="#9b1c1c" />
@@ -50,7 +45,7 @@ export default function SoupBowl({ filled, onClick, disabled }) {
           </radialGradient>
         </defs>
 
-        {/* Steam wisps — only when filled */}
+        {/* steam */}
         {filled && (
           <g className="steam">
             <ellipse cx="120" cy="80" rx="14" ry="22" fill="url(#steam-grad)" />
@@ -59,17 +54,33 @@ export default function SoupBowl({ filled, onClick, disabled }) {
           </g>
         )}
 
-        {/* Bowl rim (back) — always visible */}
-        <ellipse cx="160" cy="110" rx="115" ry="22" fill="url(#rim-shadow)" />
-        <ellipse cx="160" cy="108" rx="112" ry="18" fill="#1a0808" opacity="0.4" />
+        {/* bowl body */}
+        <path
+          d="M 48 110 Q 48 205 160 205 Q 272 205 272 110 Z"
+          fill="#6f1b1bff"
+        />
+        {/* Inner curve shadow for depth */}
+        <path
+          d="M 52 110 Q 52 200 160 200 Q 268 200 268 110"
+          fill="none"
+          stroke="rgba(0,0,0,0.08)"
+          strokeWidth="2"
+        />
 
-        {/* Soup — only rendered when filled */}
+        {/* Outer red rim band */}
+        <ellipse cx="160" cy="110" rx="120" ry="22" fill="url(#rim-gradient)" />
+
+        {/* Inner dark rim hole (the "opening") */}
+        <ellipse cx="160" cy="110" rx="112" ry="18" fill="#3a1010" />
+
+        {/* Soup surface — only inside the rim opening */}
         {filled && (
-          <g clipPath="url(#bowl-interior)" className="soup-layer">
-            <rect x="50" y="100" width="220" height="120" fill="url(#soup-gradient)" />
+          <g className="soup-layer" clipPath="url(#soup-surface-clip)">
+            {/* Soup fill */}
+            <ellipse cx="160" cy="110" rx="112" ry="18" fill="url(#soup-gradient)" />
 
-            {/* Soup surface highlight */}
-            <ellipse cx="160" cy="108" rx="108" ry="10" fill="#f9c84d" opacity="0.6" />
+            {/* Subtle highlight on the surface */}
+            <ellipse cx="145" cy="105" rx="50" ry="5" fill="#ffd97a" opacity="0.5" />
 
             {/* Broccoli florets */}
             <g className="broccoli broccoli-1">
@@ -96,26 +107,14 @@ export default function SoupBowl({ filled, onClick, disabled }) {
           </g>
         )}
 
-        {/* Bowl body (front) — always visible */}
+        {/* highlight */}
         <path
-          d="M 45 110 Q 45 205 160 205 Q 275 205 275 110 L 270 110 Q 270 200 160 200 Q 50 200 50 110 Z"
-          fill="url(#bowl-body)"
-        />
-        <path
-          d="M 50 110 Q 50 200 160 200 Q 270 200 270 110"
-          fill="none"
-          stroke="#7a1212"
-          strokeWidth="2"
-        />
-
-        {/* Subtle shine on bowl */}
-        <path
-          d="M 65 130 Q 75 170 105 190"
+          d="M 65 130 Q 75 170 105 192"
           fill="none"
           stroke="#f4a4a4"
           strokeWidth="3"
           strokeLinecap="round"
-          opacity="0.5"
+          opacity="0.2"
         />
       </svg>
     </button>
